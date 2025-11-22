@@ -1,0 +1,131 @@
+div.repository_aiimage div.fp-content:has(div.fp-error.nofilesavailable) {
+    display: none;
+}
+
+.repository_aiimage .fp-repo-items .fp-viewbar {
+    display: none;
+}
+
+.repository_aiimage .fp-navbar:has(.fp-tb-search:not(.disabled))+.fp-content {
+    height: 100px;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-imagegen {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-textarea {
+    resize: vertical;
+    min-height: 4.5rem;
+    padding: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-select {
+    padding: 0.4rem;
+    font-size: 0.95rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-image-list {
+    max-height: 10rem;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: #fafafa;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-radio {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-radio input[type="radio"] {
+    margin-top: 0.25rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-radio-thumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-radio-thumb img {
+    width: 3rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: 0.25rem;
+    border: 1px solid #ccc;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-radio-caption {
+    max-width: 12rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-empty {
+    font-style: italic;
+    color: #666;
+}
+
+.repository_aiimage .fp-toolbar div.repo-cp-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.aiimage-submit {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.95rem;
+}
+
+.repository_aiimage .fp-toolbar,
+.repository_aiimage .fp-toolbar .fp-tb-search,
+.repository_aiimage .fp-toolbar .fp-tb-search .repository_aiimage_image_prompt_wrapper,
+.repository_aiimage .fp-toolbar .fp-tb-search .repository_aiimage_image_prompt_wrapper .repo-cp-imagegen {
+    width: 100%;
+}
+
+.repository_aiimage .repo-cp-field .repo-cp-radio {
+    display: flex;
+}
+
+.repository_aiimage .repo-cp-field .repo-cp-radio .repo-cp-radio-thumb {
+    display: flex;
+    align-items: center;
+}
+
+.repository_aiimage select.repo-cp-select {
+    appearance: auto;
+}
+
+.repo-cp-radio span.repo-cp-radio-thumb,
+.repo-cp-radio span.repo-cp-radio-noimage {
+    padding-left: 10px
+}
+
+.repository_aiimage .repo-cp-image-list .repo-cp-radio input[name="selectedimage"]:focus {
+    box-shadow: 0 0;
+}

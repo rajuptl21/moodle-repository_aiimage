@@ -1,0 +1,90 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template repository_aiimage/imagegenform
+
+    Compact prompt + style selector + existing-image chooser used within the
+    Cloud Poodll repository login form. Expected context:
+
+    {
+        "formid": "aiimage-imagegen",
+        "action": "",
+        "prompt": "",
+        "styles": [
+            {"value": "flat vector illustration", "label": "Flat vector illustration", "selected": true},
+            ...
+        ],
+        "images": [
+            {"id": "img1", "value": "https://...", "label": "cloudpoodll_123.png", "preview": "https://.../thumb", "selected": false},
+            ...
+        ],
+    }
+}}
+
+<div class="repo-cp-imagegen"{{#formid}} id="{{formid}}"{{/formid}}>
+    <input type="hidden" name="sesskey" value="{{sesskey}}">
+    <div class="repo-cp-field">
+        <label class="repo-cp-label" for="{{formid}}-prompt">{{#str}} enterprompt, repository_aiimage {{/str}}</label>
+    <textarea class="repo-cp-textarea form-control" id="{{formid}}-prompt" name="s" rows="3" placeholder="{{#canedit}}{{#str}} promptplaceholdercanedit, repository_aiimage {{/str}}{{/canedit}}{{^canedit}}{{#str}} promptplaceholder, repository_aiimage {{/str}}{{/canedit}}">{{prompt}}</textarea>
+    </div>
+
+    <div class="repo-cp-field">
+        <label class="repo-cp-label" for="{{formid}}-style">{{#str}} imagetype, repository_aiimage {{/str}}</label>
+        <select class="repo-cp-select form-control" id="{{formid}}-style" name="imagetype">
+            {{#imagestyles}}
+                <option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>
+            {{/imagestyles}}
+        </select>
+    </div>
+
+    <div class="repo-cp-field">
+        {{#canedit}}
+        <div class="repo-cp-image-list">
+            {{#showclearoption}}
+                <label class="repo-cp-radio">
+                    <input type="radio" name="selectedimage" id="repo-cp-radio-noimageselected" value=""{{#nocurrent}} checked{{/nocurrent}} onclick="document.getElementById('{{formid}}-style').disabled = false;">
+                    <span class="repo-cp-radio-noimage">{{#str}} noimagelabel, repository_aiimage {{/str}}</span>
+                </label>
+            {{/showclearoption}}
+
+            {{#images}}
+                <label class="repo-cp-radio">
+                    <input type="radio" name="selectedimage" value="{{title}}"{{#selected}} checked{{/selected}} onclick="document.getElementById('{{formid}}-style').disabled = true;">
+                    <span class="repo-cp-radio-thumb">
+                        {{#realthumbnail}}
+                            <img src="{{realthumbnail}}" alt="" loading="lazy">
+                        {{/realthumbnail}}
+                        {{^realthumbnail}}
+                            {{#thumbnail}}<img src="{{thumbnail}}" alt="" loading="lazy">{{/thumbnail}}
+                        {{/realthumbnail}}
+                        <span class="repo-cp-radio-caption">{{title}}</span>
+                    </span>
+                </label>
+            {{/images}}
+
+            {{^images}}
+                <div class="repo-cp-empty">{{#str}} noimagesmessage, repository_aiimage {{/str}}</div>
+            {{/images}}
+        </div>
+        {{/canedit}}
+    </div>
+
+    <div class="repo-cp-actions">
+        <button type="submit" class="repo-cp-submit btn btn-primary">{{#str}} makeimage, repository_aiimage {{/str}}</button>
+    </div>
+</div>
+
