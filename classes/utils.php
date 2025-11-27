@@ -296,7 +296,7 @@ class utils {
             $message = get_string(
                 'novalidcredentials',
                 constants::M_COMPONENT,
-                $CFG->wwwroot . constants::M_PLUGINSETTINGS
+                $CFG->wwwroot . "/" . $CFG->admin . constants::M_PLUGINSETTINGS
             );
             return $message;
         }

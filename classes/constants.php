@@ -49,6 +49,6 @@ class constants {
     /**
      * Plugin settings page URL
      */
-    const M_PLUGINSETTINGS = 'admin/repository.php?action=edit&repos=aiimage';
+    const M_PLUGINSETTINGS = '/repository.php?action=edit&repos=aiimage';
 
 }
