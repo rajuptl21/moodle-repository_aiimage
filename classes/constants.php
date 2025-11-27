@@ -31,8 +31,24 @@ class constants {
     // Component name, db tables, strings that are fixed and used around the plugin
     const M_COMPONENT = 'repository_aiimage';
 
+    /**
+     * Shortname of the plugin
+     */
     const M_SHORTNAME = 'aiimage';
+
+    /**
+     * Default CloudPoodll server
+     */
     const M_DEFAULT_CLOUDPOODLL = "cloud.poodll.com";
+
+    /**
+     * Option value for CloudPoodll API provider
+     */
     const CLOUDPOODLL_OPTION = -1;
+
+    /**
+     * Plugin settings page URL
+     */
+    const M_PLUGINSETTINGS = 'admin/repository.php?action=edit&repos=aiimage';
 
 }

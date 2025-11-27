@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace aiprovider_gemini;
 
@@ -9,10 +23,21 @@ use Psr\Http\Message\UriInterface;
 use GuzzleHttp\Psr7\Uri;
 
 /**
- * @property-read \core_ai\aiactions\edit_image $action
+ * Class process_edit_image
+ *
+ * @package    aiprovider_gemini
+ * @copyright  2025 Justin Hunt <justin@poodll.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 class process_edit_image extends process_generate_image {
 
+    /**
+     * Create the request object to send to the API.
+     *
+     * @param string $userid The user id making the request.
+     * @return RequestInterface
+     */
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
         /** @var \stored_file $stored_file */
@@ -46,6 +71,12 @@ class process_edit_image extends process_generate_image {
         );
     }
 
+    /**
+     * Handle a successful API response.
+     *
+     * @param ResponseInterface $response The response from the API.
+     * @return array The processed response data.
+     */
     #[\Override]
     protected function handle_api_success(ResponseInterface $response): array {
         /** @var \stored_file $stored_file */

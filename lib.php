@@ -402,6 +402,10 @@ class repository_aiimage extends repository
     }
 
 
+    /**
+     * Fetch available image style options.
+     * @return array
+     */
     public function fetch_image_options()
     {
         return [
@@ -415,6 +419,11 @@ class repository_aiimage extends repository
         ];
     }
 
+    /**
+     * Fetch a file by filename from user draft area.
+     * @param string $filename
+     * @return \stored_file|null
+    */
     public function fetch_file_by_filename($filename)
     {
         global $USER, $OUTPUT;

@@ -1,9 +1,30 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace core_ai\aiactions;
 
 require_once dirname(__FILE__) . '/responses/response_edit_image.php';
 
+/**
+ * Class edit_image
+ *
+ * @package    core_ai
+ * @copyright  2025 Justin Hunt <justin@poodll.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class edit_image extends generate_image {
     /**
      * Create a new instance of the edit_image action.
@@ -11,6 +32,7 @@ class edit_image extends generate_image {
      * It’s responsible for performing any setup tasks,
      * such as getting additional data from the database etc.
      *
+     * @param int $contextid The context id.
      * @param int $userid The user id making the request.
      * @param string $prompttext The prompt text used to generate the image.
      * @param string $quality The quality of the generated image.

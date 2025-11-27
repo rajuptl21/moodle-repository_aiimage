@@ -36,9 +36,15 @@ class utils {
         }
     }
 
-    
-    // we use curl to fetch transcripts from AWS and Tokens from cloudpoodll
-    // this is our helper
+
+    /**
+     * we use curl to fetch transcripts from AWS and Tokens from cloudpoodll
+     * this is our helper
+     * @param mixed $url
+     * @param mixed $postdata
+     * @param mixed $ispost
+     * @return string
+     */
     public static function curl_fetch($url, $postdata = false, $ispost = false)
     {
         global $CFG;
@@ -54,9 +60,14 @@ class utils {
         return $result;
     }
 
-    // This is called from the settings page and we do not want to make calls out to cloud.poodll.com on settings
-    // page load, for performance and stability issues. So if the cache is empty and/or no token, we just show a
-    // "refresh token" links
+    /**
+     * This is called from the settings page and we do not want to make calls out to cloud.poodll.com on settings
+     * page load, for performance and stability issues. So if the cache is empty and/or no token, we just show a
+     * "refresh token" links
+     * @param mixed $apiuser
+     * @param mixed $apisecret
+     * @return string
+     */
     public static function fetch_token_for_display($apiuser, $apisecret)
     {
         global $CFG;
@@ -120,7 +131,13 @@ class utils {
 
     }
 
-    // We need a Poodll token to make all this recording and transcripts happen
+    /**
+     * We need a Poodll token to make all this recording and transcripts happen
+     * @param mixed $apiuser
+     * @param mixed $apisecret
+     * @param mixed $force
+     * @return string
+     */
     public static function fetch_token($apiuser, $apisecret, $force = false)
     {
 
@@ -197,7 +214,12 @@ class utils {
         return $token;
     }
 
-    // check site URL is actually registered
+    /**
+     * check site URL is actually registered
+     * @param mixed $sites
+     * @param mixed $wildcardok
+     * @return bool
+     */
     static function is_site_registered($sites, $wildcardok = true)
     {
         global $CFG;
@@ -259,8 +281,12 @@ class utils {
         return false;
     }
 
-    // check token and tokenobject(from cache)
-    // return error message or blank if its all ok
+    /**
+     * check token and tokenobject(from cache)
+     * return error message or blank if its all ok
+     * @param mixed $token
+     * @return string
+     */
     public static function fetch_token_error($token)
     {
         global $CFG;
@@ -305,6 +331,11 @@ class utils {
         return '';
     }
 
+    /**
+     * Get region options
+     *
+     * @return array
+     */
     public static function get_region_options()
     {
         return [
@@ -341,6 +372,11 @@ class utils {
         return null;
     }
 
+    /**
+     * Summary of super_trim
+     * @param mixed $str
+     * @return string
+     */
     public static function super_trim($str)
     {
         if ($str == null) {
