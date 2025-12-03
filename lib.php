@@ -123,8 +123,12 @@ class repository_aiimage extends repository {
             $allproviders = $manager->get_providers_for_actions([$actionclass], true);
             if (!empty($allproviders[$actionclass])) {
                 foreach ($allproviders[$actionclass] as $aiprovider) {
-                    $aiproviderrecord = $aiprovider->to_record();
-                    $options[$aiproviderrecord->id] = $aiproviderrecord->name;
+                    if ($CFG->branch < 500) {
+                        $options[$aiprovider->get_name()] = get_string('pluginname', $aiprovider->get_name());
+                    } else {
+                        $aiproviderrecord = $aiprovider->to_record();
+                        $options[$aiproviderrecord->id] = $aiproviderrecord->name;
+                    }
                 }
             }
         }
@@ -133,7 +137,7 @@ class repository_aiimage extends repository {
 
         // API Provider.
         $mform->addElement('select', 'apiprovider', get_string('apiprovider', constants::M_COMPONENT), $options);
-        $mform->setType('apiprovider', PARAM_INT);
+        $mform->setType('apiprovider', PARAM_ALPHANUMEXT);
         $mform->setDefault('apiprovider', constants::CLOUDPOODLL_OPTION);
         $mform->addHelpButton('apiprovider', 'apiprovider', constants::M_COMPONENT);
 

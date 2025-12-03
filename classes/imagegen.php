@@ -345,6 +345,60 @@ class imagegen {
     }
 
     /**
+     * Get the provider instance and check if it's enabled for the given action
+     * @param string $providerid The provider ID
+     * @param string $actionclass The action class name
+     * @return array|null Returns array with 'manager', 'provider', and 'enabled' keys, or null if not found
+     */
+    private function get_provider_and_check_enabled($providerid, $actionclass) {
+        global $CFG;
+
+        if (!class_exists(\core_ai\manager::class)) {
+            return null;
+        }
+
+        $manager = \core\di::get(\core_ai\manager::class);
+        $providerenabled = false;
+        $providerinstance = null;
+
+        if ($CFG->branch < 500) {
+            $providerinstances = \core_ai\manager::get_providers_for_actions([$actionclass], true);
+            if (isset($providerinstances[$actionclass])) {
+                foreach ($providerinstances[$actionclass] as $provider) {
+                    if ($provider->get_name() == $providerid) {
+                        $providerinstance = $provider;
+                        $providerenabled = \core_ai\manager::is_action_enabled(
+                            $providerid,
+                            $actionclass
+                        );
+                        break;
+                    }
+                }
+            }
+        } else {
+            $providerinstances = $manager->get_provider_instances(['id' => $providerid]);
+            /** @var \core_ai\provider $providerinstance */
+            $providerinstance = reset($providerinstances);
+            $providerenabled = !empty($providerinstance) &&
+                $manager->is_action_enabled(
+                    $providerinstance->provider,
+                    $actionclass,
+                    $providerinstance->id
+                );
+        }
+
+        if (!$providerenabled || empty($providerinstance)) {
+            return null;
+        }
+
+        return [
+            'manager' => $manager,
+            'provider' => $providerinstance,
+            'enabled' => true,
+        ];
+    }
+
+    /**
      * check edit image or not
      * @return bool
      */
@@ -353,21 +407,38 @@ class imagegen {
         if ($providerid == constants::CLOUDPOODLL_OPTION) {
             return true;
         }
-        if (!class_exists(\core_ai\manager::class)) {
-            return false;
-        }
-        $manager = \core\di::get(\core_ai\manager::class);
 
-        $providerinstances = $manager->get_provider_instances(['id' => $providerid]);
-        $providerinstance = reset($providerinstances);
-        if (empty($providerinstance)) {
+        $actionclass = \core_ai\aiactions\generate_image::class;
+        $result = $this->get_provider_and_check_enabled($providerid, $actionclass);
+
+        if (empty($result)) {
             return false;
         }
-        $providernamearr = explode('_', $providerinstance->provider, 2);
-        $providername = array_pop($providernamearr);
-        return in_array(strtolower($providername), [
-            'gemini',
-        ]);
+
+        $providerinstance = $result['provider'];
+        return strpos($providerinstance->get_name(), 'gemini') !== false;
+    }
+
+    /**
+     * Call AI provider action using reflection
+     * @param object $manager The AI manager instance
+     * @param object $providerinstance The provider instance
+     * @param object $action The action object
+     * @return object|false The result object or false on failure
+     */
+    private function call_and_store_action($manager, $providerinstance, $action) {
+        $reflclass = new \ReflectionClass($manager);
+        $reflmethod = $reflclass->getMethod('call_action_provider');
+        $result = $reflmethod->invoke($manager, $providerinstance, $action);
+
+        $reflmethod2 = $reflclass->getMethod('store_action_result');
+        $reflmethod2->invoke($manager, $providerinstance, $action, $result);
+
+        if (!$result->get_success()) {
+            return false;
+        }
+
+        return $result;
     }
 
     /**
@@ -382,58 +453,45 @@ class imagegen {
         $context = \context_system::instance();
         $actionclass = \core_ai\aiactions\generate_image::class;
         $providerid = $this->conf->apiprovider ?? constants::CLOUDPOODLL_OPTION;
-        if ($providerid > 0 && class_exists(\core_ai\manager::class)) {
-            $manager = \core\di::get(\core_ai\manager::class);
-
-            $providerinstances = $manager->get_provider_instances(['id' => $providerid]);
-            /** @var \core_ai\provider $providerinstance */
-            $providerinstance = reset($providerinstances);
-            $providerenabled = !empty($providerinstance) &&
-                $manager->is_action_enabled(
-                    $providerinstance->provider,
-                    $actionclass,
-                    $providerinstance->id
-                );
-            if ($providerenabled) {
-                // Prepare the action.
-                $paramstructure = [
-                    'contextid' => $context->id,
-                    'prompttext' => $prompt,
-                    'aspectratio' => optional_param('aspectratio', 'square', PARAM_ALPHA),
-                    'quality' => optional_param('quality', 'standard', PARAM_ALPHA),
-                    'numimages' => optional_param('numimages', 1, PARAM_INT),
-                    'style' => optional_param('style', 'natural', PARAM_ALPHA),
-                ];
-                $action = new $actionclass(
-                    contextid: $paramstructure['contextid'],
-                    userid: $USER->id,
-                    prompttext: $paramstructure['prompttext'],
-                    quality: $paramstructure['quality'],
-                    aspectratio: $paramstructure['aspectratio'],
-                    numimages: $paramstructure['numimages'],
-                    style: $paramstructure['style'],
-                );
-
-                $reflclass = new \ReflectionClass($manager);
-                $reflmethod = $reflclass->getMethod('call_action_provider');
-                $reflmethod->setAccessible(true);
-
-                $result = $reflmethod->invoke($manager, $providerinstance, $action);
-
-                $reflmethod2 = $reflclass->getMethod('store_action_result');
-                $reflmethod2->setAccessible(true);
-
-                $reflmethod2->invoke($manager, $providerinstance, $action, $result);
-
-                if (!$result->get_success()) {
-                    return false;
-                }
-
-                $draftfile = $result->get_response_data()['draftfile'] ?? null;
-                return $this->process_ai_generated_file($draftfile, $draftid, $filename);
-            }
+        $isaiprovider = empty($providerid) || $providerid != constants::CLOUDPOODLL_OPTION;
+        if (!$isaiprovider) {
+            return null;
         }
-        return null;
+
+        $providerdata = $this->get_provider_and_check_enabled($providerid, $actionclass);
+        if (empty($providerdata)) {
+            return null;
+        }
+
+        $manager = $providerdata['manager'];
+        $providerinstance = $providerdata['provider'];
+
+        // Prepare the action.
+        $paramstructure = [
+            'contextid' => $context->id,
+            'prompttext' => $prompt,
+            'aspectratio' => optional_param('aspectratio', 'square', PARAM_ALPHA),
+            'quality' => optional_param('quality', 'standard', PARAM_ALPHA),
+            'numimages' => optional_param('numimages', 1, PARAM_INT),
+            'style' => optional_param('style', 'natural', PARAM_ALPHA),
+        ];
+        $action = new $actionclass(
+            contextid: $paramstructure['contextid'],
+            userid: $USER->id,
+            prompttext: $paramstructure['prompttext'],
+            quality: $paramstructure['quality'],
+            aspectratio: $paramstructure['aspectratio'],
+            numimages: $paramstructure['numimages'],
+            style: $paramstructure['style'],
+        );
+
+        $result = $this->call_and_store_action($manager, $providerinstance, $action);
+        if ($result === false) {
+            return false;
+        }
+
+        $draftfile = $result->get_response_data()['draftfile'] ?? null;
+        return $this->process_ai_generated_file($draftfile, $draftid, $filename);
     }
 
     /**
@@ -450,62 +508,49 @@ class imagegen {
         $context = \context_system::instance();
         $actionclass = \core_ai\aiactions\generate_image::class;
         $providerid = $this->conf->apiprovider ?? constants::CLOUDPOODLL_OPTION;
-        if ($providerid > 0 && class_exists(\core_ai\manager::class)) {
-            $manager = \core\di::get(\core_ai\manager::class);
-
-            $providerinstances = $manager->get_provider_instances(['id' => $providerid]);
-            /** @var \core_ai\provider $providerinstance */
-            $providerinstance = reset($providerinstances);
-            $providerenabled = !empty($providerinstance) &&
-                $manager->is_action_enabled(
-                    $providerinstance->provider,
-                    $actionclass,
-                    $providerinstance->id
-                );
-
-            if ($providerenabled) {
-                require_once($CFG->dirroot . '/repository/aiimage/aiimplementation/' .
-                    $providerinstance->provider . '/process_edit_image.php');
-                // Prepare the action.
-                $paramstructure = [
-                    'contextid' => $context->id,
-                    'prompttext' => $prompt,
-                    'aspectratio' => optional_param('aspectratio', 'square', PARAM_ALPHA),
-                    'quality' => optional_param('quality', 'standard', PARAM_ALPHA),
-                    'numimages' => optional_param('numimages', 1, PARAM_INT),
-                    'style' => optional_param('style', 'natural', PARAM_ALPHA),
-                ];
-                $action = new \core_ai\aiactions\edit_image(
-                    contextid: $paramstructure['contextid'],
-                    userid: $USER->id,
-                    prompttext: $paramstructure['prompttext'],
-                    quality: $paramstructure['quality'],
-                    aspectratio: $paramstructure['aspectratio'],
-                    numimages: $paramstructure['numimages'],
-                    style: $paramstructure['style'],
-                    storedfile: $file
-                );
-
-                $reflclass = new \ReflectionClass($manager);
-                $reflmethod = $reflclass->getMethod('call_action_provider');
-                $reflmethod->setAccessible(true);
-
-                $result = $reflmethod->invoke($manager, $providerinstance, $action);
-
-                $reflmethod2 = $reflclass->getMethod('store_action_result');
-                $reflmethod2->setAccessible(true);
-
-                $reflmethod2->invoke($manager, $providerinstance, $action, $result);
-
-                if (!$result->get_success()) {
-                    return false;
-                }
-
-                $draftfile = $result->get_response_data()['draftfile'] ?? null;
-                return $this->process_ai_generated_file($draftfile, $draftid, $filename);
-            }
+        $isaiprovider = empty($providerid) || $providerid != constants::CLOUDPOODLL_OPTION;
+        if (!$isaiprovider) {
+            return null;
         }
-        return null;
+
+        $providerdata = $this->get_provider_and_check_enabled($providerid, $actionclass);
+        if (empty($providerdata)) {
+            return null;
+        }
+
+        $manager = $providerdata['manager'];
+        $providerinstance = $providerdata['provider'];
+
+        require_once($CFG->dirroot . '/repository/aiimage/aiimplementation/' .
+            $providerinstance->get_name() . '/process_edit_image.php');
+
+        // Prepare the action.
+        $paramstructure = [
+            'contextid' => $context->id,
+            'prompttext' => $prompt,
+            'aspectratio' => optional_param('aspectratio', 'square', PARAM_ALPHA),
+            'quality' => optional_param('quality', 'standard', PARAM_ALPHA),
+            'numimages' => optional_param('numimages', 1, PARAM_INT),
+            'style' => optional_param('style', 'natural', PARAM_ALPHA),
+        ];
+        $action = new \core_ai\aiactions\edit_image(
+            contextid: $paramstructure['contextid'],
+            userid: $USER->id,
+            prompttext: $paramstructure['prompttext'],
+            quality: $paramstructure['quality'],
+            aspectratio: $paramstructure['aspectratio'],
+            numimages: $paramstructure['numimages'],
+            style: $paramstructure['style'],
+            storedfile: $file
+        );
+
+        $result = $this->call_and_store_action($manager, $providerinstance, $action);
+        if ($result === false) {
+            return false;
+        }
+
+        $draftfile = $result->get_response_data()['draftfile'] ?? null;
+        return $this->process_ai_generated_file($draftfile, $draftid, $filename);
     }
 
     /**
