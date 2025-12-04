@@ -41,6 +41,11 @@ class repository_aiimage extends repository {
      */
     protected $imagegen = null;
 
+    public function __construct($repositoryid, $context = SYSCONTEXTID, $options = []) {
+        global $CFG, $PAGE;
+        parent::__construct ($repositoryid, $context, $options);
+    }
+
     /**
      * Supported return types.
      * @return int
@@ -124,7 +129,7 @@ class repository_aiimage extends repository {
             if (!empty($allproviders[$actionclass])) {
                 foreach ($allproviders[$actionclass] as $aiprovider) {
                     if ($CFG->branch < 500) {
-                        $options[$aiprovider->get_name()] = get_string('pluginname', $aiprovider->get_name());
+                        $options[$aiprovider->get_name()] = $aiprovider->get_name();
                     } else {
                         $aiproviderrecord = $aiprovider->to_record();
                         $options[$aiproviderrecord->id] = $aiproviderrecord->name;
@@ -243,6 +248,29 @@ class repository_aiimage extends repository {
             'awsregion',
             'pluginname',
         ];
+    }
+
+     public function get_option($config = '') {
+        $thisopts = self::get_type_option_names();
+        foreach ($thisopts as $opt) {
+            if ($config == $opt) {
+                return get_config(constants::M_SHORTNAME, $opt);
+            }
+        }
+        $options = parent::get_option($config);
+        return $options;
+    }
+
+    public function set_option($options = []) {
+        $thisopts = self::get_type_option_names();
+        foreach ($thisopts as $opt) {
+            if (!empty($options[$opt])) {
+                set_config($opt, trim($options[$opt]), constants::M_SHORTNAME);
+                unset($options[$opt]);
+            }
+        }
+        $ret = parent::set_option($options);
+        return $ret;
     }
 
     /**
