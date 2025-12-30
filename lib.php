@@ -41,9 +41,15 @@ class repository_aiimage extends repository {
      */
     protected $imagegen = null;
 
+    /**
+     * Constructor.
+     * @param int $repositoryid
+     * @param int $context
+     * @param array $options
+     */
     public function __construct($repositoryid, $context = SYSCONTEXTID, $options = []) {
         global $CFG, $PAGE;
-        parent::__construct ($repositoryid, $context, $options);
+        parent::__construct($repositoryid, $context, $options);
     }
 
     /**
@@ -250,7 +256,12 @@ class repository_aiimage extends repository {
         ];
     }
 
-     public function get_option($config = '') {
+    /**
+     * Get Plugin settings from Moodle config.
+     * @param string $config specific config to get
+     * @return mixed
+     */
+    public function get_option($config = '') {
         $thisopts = self::get_type_option_names();
         foreach ($thisopts as $opt) {
             if ($config == $opt) {
@@ -261,6 +272,11 @@ class repository_aiimage extends repository {
         return $options;
     }
 
+    /**
+     * Save Plugin settings to Moodle config.
+     * @param array $options
+     * @return bool
+     */
     public function set_option($options = []) {
         $thisopts = self::get_type_option_names();
         foreach ($thisopts as $opt) {

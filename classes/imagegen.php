@@ -36,7 +36,7 @@ class imagegen {
     /**
      * imagegen constructor.
      */
-    public function __construct($repo) {
+    public function __construct() {
         global $DB;
         $this->conf = get_config(constants::M_SHORTNAME);
     }
@@ -133,13 +133,13 @@ class imagegen {
      * @return array|false Returns an array with draft file URL, draft item ID, term ID, and base64 data, or false on failure.
      */
     public function generate_image($prompt, $draftid, $filename) {
-        // If we can do this with an AI Subsystem provider, we do that
+        // If we can do this with an AI Subsystem provider, we do that.
         $providerresponse = $this->call_ai_provider_create_image($prompt, $draftid, $filename);
         if (!is_null($providerresponse)) {
             return $providerresponse;
         }
 
-        // Otherwise we try with Cloud Poodll
+        // Otherwise we try with Cloud Poodll.
         $params = $this->prepare_generate_image_payload(($prompt));
         if ($params) {
             $url = utils::get_cloud_poodll_server() . "/webservice/rest/server.php";
